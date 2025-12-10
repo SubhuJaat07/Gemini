@@ -21,10 +21,8 @@ const client = new Client({
 
 // --- GEMINI FIXED (v1) ---
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// Correct new models
-const modelFlash = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-const modelPro = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+const modelFlash = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+const modelPro = genAI.getGenerativeModel({ model: "gemini-1.5-pro-001" });;
 
 client.once("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
