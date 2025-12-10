@@ -3,19 +3,20 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const express = require('express');
 
-// --- 1. WEB SERVER (Koyeb ko khush rakhne ke liye) ---
+// --- 1. KOYEB HEALTH CHECK SERVER ---
 const app = express();
-const port = process.env.PORT || 3000;
+// Koyeb automatically sets PORT, usually to 8000
+const port = process.env.PORT || 8000;
 
 app.get('/', (req, res) => {
-    res.send('Gemini Bot is Active and Running!');
+    res.send('Gemini Bot is Online!');
 });
 
 app.listen(port, () => {
     console.log(`Web server listening on port ${port}`);
 });
 
-// --- 2. BOT SETUP ---
+// --- 2. DISCORD BOT SETUP ---
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -24,33 +25,38 @@ const client = new Client({
     ]
 });
 
-// Gemini Config
+// --- 3. GEMINI SETUP ---
+// Ensure API Key exists
+if (!process.env.GEMINI_API_KEY) {
+    console.error("CRITICAL ERROR: GEMINI_API_KEY is missing in Environment Variables!");
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Ab naye package.json ke sath ye model chal jayega
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+    console.log(`Bot Logged in as ${client.user.tag}`);
 });
 
-// --- 3. MESSAGE LOGIC ---
 client.on('messageCreate', async (message) => {
-    // Khud ko reply na kare
+    // 1. Ignore bots
     if (message.author.bot) return;
 
-    // Check kare ki kya ye sahi channel hai?
-    // Environment variable se channel ID lega
-    if (message.channel.id !== process.env.AI_CHANNEL_ID) return;
+    // 2. Channel Lock (Agar Environment Variable set hai to sirf wahi kaam karega)
+    if (process.env.AI_CHANNEL_ID && message.channel.id !== process.env.AI_CHANNEL_ID) {
+        return;
+    }
 
     try {
-        // Typing dikhaye
         await message.channel.sendTyping();
 
-        // Gemini se answer le
+        // 3. Generate Content
         const result = await model.generateContent(message.content);
         const response = await result.response;
         const text = response.text();
 
-        // Agar message 2000 characters se bada hai to tod kar bheje
+        // 4. Split Long Messages (Discord 2000 char limit)
         if (text.length > 2000) {
             const chunks = text.match(/[\s\S]{1,1900}/g) || [];
             for (const chunk of chunks) {
@@ -61,22 +67,10 @@ client.on('messageCreate', async (message) => {
         }
 
     } catch (error) {
-        console.error('Error:', error);
-        await message.reply('Mera dimag abhi kaam nahi kar raha (API Error).');
+        console.error('Gemini Error:', error);
+        // Error user ko batana optional hai, taaki spam na ho
+        // await message.reply("Error connecting to AI."); 
     }
 });
 
-// Login
 client.login(process.env.DISCORD_TOKEN);
-// ...
-// Gemini Config
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-// !!! YE LINE ABHI ADD KARO AUR REDEPLOY KARO !!!
-console.log(`[DEBUG] Gemini Key is loaded: ${process.env.GEMINI_API_KEY ? 'Yes' : 'No'}. Starting with: ${process.env.GEMINI_API_KEY?.substring(0, 4)}...`);
-// !!! YE LINE ABHI ADD KARO AUR REDEPLOY KARO !!!
-
-client.once('ready', () => {
-// ...
-
