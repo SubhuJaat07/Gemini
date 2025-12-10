@@ -68,3 +68,15 @@ client.on('messageCreate', async (message) => {
 
 // Login
 client.login(process.env.DISCORD_TOKEN);
+// ...
+// Gemini Config
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+// !!! YE LINE ABHI ADD KARO AUR REDEPLOY KARO !!!
+console.log(`[DEBUG] Gemini Key is loaded: ${process.env.GEMINI_API_KEY ? 'Yes' : 'No'}. Starting with: ${process.env.GEMINI_API_KEY?.substring(0, 4)}...`);
+// !!! YE LINE ABHI ADD KARO AUR REDEPLOY KARO !!!
+
+client.once('ready', () => {
+// ...
+
