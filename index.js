@@ -44,7 +44,9 @@ client.on('messageCreate', async (message) => {
         // --- NEW SDK REQUEST ---
         // Nayi library me request bhejne ka tarika alag hai
         const { response } = await ai.models.generateContent({
-            model: 'gemini-2.5-flash', // Jo tumne screenshot me dekha
+    model: 'gemini-pro', // SAFE & STABLE MODEL
+// ...
+
             contents: [
                 {
                     parts: [
