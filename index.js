@@ -53,9 +53,15 @@ client.on('messageCreate', async (message) => {
                 }
             ]
         });
+        // Response text nikalna. Check karein ki response available hai ya nahi
+        const text = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text; 
 
-        // Response text nikalna
-        const text = response.text();
+        if (!text) {
+            // Agar text nahi mila, to moderation ki warning bhejo
+            await message.reply("Sorry, main is sawaal ka jawaab nahi de sakta (Content Policy ki wajah se).");
+            return;
+        }
+
 
         // Split Logic (2000 words limit)
         if (text.length > 2000) {
