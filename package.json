@@ -1,15 +1,18 @@
 {
   "name": "gemini-discord-bot",
   "version": "1.0.0",
-  "description": "Simple Gemini AI Bot",
+  "description": "Discord Bot with Gemini AI",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "discord.js": "^14.14.1",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "@google/generative-ai": "^0.1.3"
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "@google/generative-ai": "^0.21.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
