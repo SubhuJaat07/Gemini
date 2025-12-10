@@ -1,8 +1,7 @@
 {
-  "name": "gemini-discord-bot",
+  "name": "gemini-new-sdk-bot",
   "version": "1.0.0",
-  "description": "Discord Bot with Gemini AI",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
@@ -10,9 +9,9 @@
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "@google/generative-ai": "^0.3.0"
+    "@google/genai": "^0.0.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
