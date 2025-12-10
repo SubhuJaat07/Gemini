@@ -55,14 +55,19 @@ client.on('messageCreate', async (message) => {
                 }
             ]
         });
-        // Response text nikalna. Check karein ki response available hai ya nahi
+                // Response text nikalna. Check karein ki response available hai ya nahi
+        // Note: New SDK me 'text' property seedha nahi aati, content block ke andar hoti hai
         const text = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text; 
-
+        
+        // Final check: Agar text phir bhi undefined hai
         if (!text) {
-            // Agar text nahi mila, to moderation ki warning bhejo
-            await message.reply("Sorry, main is sawaal ka jawaab nahi de sakta (Content Policy ki wajah se).");
+            console.warn("AI ne reply nahi diya. Safety/Moderation check ya model error.");
+            await message.reply("Sorry, main is sawaal ka jawaab nahi de sakta (Content Policy ya Model error).");
             return;
         }
+
+        // Split Logic (2000 words limit)
+        // ... aage ka code
 
 
         // Split Logic (2000 words limit)
