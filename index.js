@@ -1,9 +1,9 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import { GoogleGenAI } from '@google/genai';
 import express from 'express';
-import 'dotenv/config'; // Naya style dotenv load karne ka
+import 'dotenv/config'; 
 
-// --- 1. WEB SERVER (Koyeb ke liye) ---
+// --- 1. WEB SERVER (KOYEB HEALTH CHECK) ---
 const app = express();
 const port = process.env.PORT || 8000;
 
@@ -13,8 +13,7 @@ app.listen(port, () => {
     console.log(`Web server listening on port ${port}`);
 });
 
-// --- 2. NEW AI SETUP ---
-// Ye wo naya tarika hai jo screenshot me tha
+// --- 2. AI SETUP ---
 if (!process.env.GEMINI_API_KEY) {
     console.error("ERROR: API Key missing!");
 }
@@ -41,12 +40,9 @@ client.on('messageCreate', async (message) => {
     try {
         await message.channel.sendTyping();
 
-        // --- NEW SDK REQUEST ---
-        // Nayi library me request bhejne ka tarika alag hai
+        // --- GEMINI API CALL ---
         const { response } = await ai.models.generateContent({
-    model: 'gemini-pro', // SAFE & STABLE MODEL
-// ...
-
+            model: 'gemini-pro', // SAFE & STABLE MODEL FINALIZED
             contents: [
                 {
                     parts: [
@@ -55,20 +51,16 @@ client.on('messageCreate', async (message) => {
                 }
             ]
         });
-                // Response text nikalna. Check karein ki response available hai ya nahi
-        // Note: New SDK me 'text' property seedha nahi aati, content block ke andar hoti hai
-        const text = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text; 
+
+        // Response text nikalna aur Safety check karna
+        const text = response.text; 
         
-        // Final check: Agar text phir bhi undefined hai
+        // Final check: Agar text nahi mila (Content Moderation se roka gaya)
         if (!text) {
-            console.warn("AI ne reply nahi diya. Safety/Moderation check ya model error.");
-            await message.reply("Sorry, main is sawaal ka jawaab nahi de sakta (Content Policy ya Model error).");
+            console.warn("AI ne reply nahi diya. Safety/Moderation check.");
+            await message.reply("Sorry, main is sawaal ka jawaab nahi de sakta (Content Policy ki wajah se).");
             return;
         }
-
-        // Split Logic (2000 words limit)
-        // ... aage ka code
-
 
         // Split Logic (2000 words limit)
         if (text.length > 2000) {
@@ -81,14 +73,9 @@ client.on('messageCreate', async (message) => {
         }
 
     } catch (error) {
-        console.error("New SDK Error:", error);
-        
-        // Fallback: Agar 2.5-flash abhi launch nahi hua hai, to user ko bata do
-        if (error.message.includes('404') || error.message.includes('not found')) {
-            await message.reply("Error: `gemini-2.5-flash` model abhi mere account par active nahi hai. Please code me `gemini-1.5-flash` karke try karein.");
-        } else {
-            await message.reply("Dimag kaam nahi kar raha (Error).");
-        }
+        console.error("Final API Error:", error);
+        // Is level par, agar koi error aata hai to woh General API ya Network ka hoga
+        await message.reply("Dimag kaam nahi kar raha (Network ya General API Error).");
     }
 });
 
