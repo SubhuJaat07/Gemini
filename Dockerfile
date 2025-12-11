@@ -1,10 +1,17 @@
-FROM node:18-alpine
+# Base image: Latest standard Node.js
+FROM node:20-alpine
 
-WORKDIR /app
+# Working directory set karna
+WORKDIR /usr/src/app
 
-COPY package*.json ./
+# Dependencies file copy karna
+COPY package.json ./
+
+# Dependencies install karna (Is baar cache se nahi uthega)
 RUN npm install
 
+# Baaki ke files copy karna
 COPY . .
 
-CMD ["npm", "start"]
+# Bot ko shuru karne ki command
+CMD ["node", "index.js"]
