@@ -1,20 +1,14 @@
-// simple Node fetch example (no SDK)
-import fetch from "node-fetch";
-
-const API_KEY = process.env.AI_STUDIO_API_KEY;
-const model = "gemini-2.5-flash"; // जो ListModels से मिलेगा
-
-const res = await fetch(`https://ai.google.dev/v1/models/${model}:generateContent`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${API_KEY}`
+{
+  "name": "discord-gemini-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
   },
-  body: JSON.stringify({
-    input: { text: "Hello from Discord bot (test)" },
-    params: { temperature: 0.6, maxOutputTokens: 400 }
-  })
-});
-
-const data = await res.json();
-console.log(data);
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2"
+  }
+}
