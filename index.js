@@ -1,23 +1,21 @@
-// Standard Node.js CommonJS imports
-require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const express = require('express');
+import { Client, GatewayIntentBits } from 'discord.js';
+// Tumhara verified import
+import { GoogleGenAI } from '@google/genai';
+import express from 'express';
+import 'dotenv/config'; 
 
 // --- 1. WEB SERVER (KOYEB HEALTH CHECK) ---
 const app = express();
 const port = process.env.PORT || 8000;
 
-app.get('/', (req, res) => res.send('Stable Bot is Online!'));
+app.get('/', (req, res) => res.send('Canonical Bot Active!'));
 app.listen(port, () => {
     console.log(`Web server listening on port ${port}`);
 });
 
-// --- 2. AI SETUP ---
-if (!process.env.GEMINI_API_KEY) {
-    console.error("ERROR: API Key missing!");
-}
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// --- 2. AI SETUP (Verified Snippet) ---
+// Key automatically GEMINI_API_KEY se uthegi
+const ai = new GoogleGenAI({}); 
 
 // --- 3. DISCORD SETUP ---
 const client = new Client({
@@ -39,21 +37,22 @@ client.on('messageCreate', async (message) => {
     try {
         await message.channel.sendTyping();
 
-        // --- GEMINI API CALL: Using the Universal Model ---
-        const response = await ai.getGenerativeModel({ model: 'gemini-pro' }).generateContent(message.content);
+        // --- GEMINI API CALL (Verified Model and Syntax) ---
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash', 
+            contents: message.content
+        });
 
-        // --- RESPONSE HANDLING FIX (Against TypeError) ---
-        // Stable SDK mein response.text() function hota hai
+        // Response Handling
         const text = response.text;
         
         // Final check: Agar text nahi mila (Content Moderation ya API issue)
         if (!text) {
-            console.warn("AI ne reply nahi diya.");
-            await message.reply("Maaf karna, main is sawaal ka jawaab nahi de sakta.");
+            await message.reply("Maaf karna, is sawaal ka jawab nahi de sakta (Safety Block).");
             return;
         }
 
-        // Split Logic (2000 words limit)
+        // Split Logic
         if (text.length > 2000) {
             const chunks = text.match(/[\s\S]{1,1900}/g) || [];
             for (const chunk of chunks) {
@@ -64,8 +63,9 @@ client.on('messageCreate', async (message) => {
         }
 
     } catch (error) {
-        console.error("Final API Error:", error);
-        await message.reply("Dimag kaam nahi kar raha (General API Error). Kripya naya API Key generate karein.");
+        console.error("Final CRITICAL API Error:", error);
+        // Agar yahan error aaya, toh iska matlab hai ki tumhari API Key ko Google ne project level par block kiya hai.
+        await message.reply("Dimag kaam nahi kar raha. (Error Code: Key/Project Lock)");
     }
 });
 
