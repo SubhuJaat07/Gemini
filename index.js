@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai'; // CORRECT IMPORT
 import express from 'express';
 import 'dotenv/config'; 
 
@@ -15,10 +15,12 @@ app.listen(port, () => {
 
 // --- 2. AI SETUP ---
 if (!process.env.GEMINI_API_KEY) {
-    console.error("ERROR: API Key missing!");
+    console.error("ERROR: GEMINI_API_KEY missing!");
+    process.exit(1); // Exit if no API key
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
 // --- 3. DISCORD SETUP ---
 const client = new Client({
@@ -31,6 +33,7 @@ const client = new Client({
 
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
+    console.log(`AI Channel: ${process.env.AI_CHANNEL_ID || 'ALL CHANNELS'}`);
 });
 
 client.on('messageCreate', async (message) => {
@@ -40,43 +43,55 @@ client.on('messageCreate', async (message) => {
     try {
         await message.channel.sendTyping();
 
-        // --- GEMINI API CALL ---
-        const { response } = await ai.models.generateContent({
-            model: 'gemini-pro', // SAFE & STABLE MODEL FINALIZED
-            contents: [
-                {
-                    parts: [
-                        { text: message.content }
-                    ]
-                }
-            ]
-        });
-
-        // Response text nikalna aur Safety check karna
-        const text = response.text; 
+        // --- GEMINI API CALL (CORRECT METHOD) ---
+        const result = await model.generateContent(message.content);
+        const response = await result.response;
+        const text = response.text();
         
         // Final check: Agar text nahi mila (Content Moderation se roka gaya)
-        if (!text) {
+        if (!text || text.trim() === '') {
             console.warn("AI ne reply nahi diya. Safety/Moderation check.");
             await message.reply("Sorry, main is sawaal ka jawaab nahi de sakta (Content Policy ki wajah se).");
             return;
         }
 
-        // Split Logic (2000 words limit)
+        // Discord character limit (2000 characters, not words)
         if (text.length > 2000) {
-            const chunks = text.match(/[\s\S]{1,1900}/g) || [];
-            for (const chunk of chunks) {
-                await message.reply(chunk);
+            // Split by characters with overlap
+            const chunks = [];
+            for (let i = 0; i < text.length; i += 1900) {
+                chunks.push(text.substring(i, i + 1900));
+            }
+            
+            // Send first chunk as reply
+            await message.reply(chunks[0]);
+            
+            // Send remaining chunks as follow-ups
+            for (let i = 1; i < chunks.length; i++) {
+                await message.channel.send(chunks[i]);
             }
         } else {
             await message.reply(text);
         }
 
     } catch (error) {
-        console.error("Final API Error:", error);
-        // Is level par, agar koi error aata hai to woh General API ya Network ka hoga
-        await message.reply("Dimag kaam nahi kar raha (Network ya General API Error).");
+        console.error("API Error Details:", error);
+        
+        // Better error messages based on error type
+        if (error.message?.includes('API key')) {
+            await message.reply("API key issue. Please check GEMINI_API_KEY.");
+        } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+            await message.reply("Network error. Please try again.");
+        } else if (error.message?.includes('safety')) {
+            await message.reply("Content blocked by safety filters.");
+        } else {
+            await message.reply(`Error: ${error.message?.substring(0, 100)}...`);
+        }
     }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+// Login with error handling
+client.login(process.env.DISCORD_TOKEN).catch(error => {
+    console.error('Discord Login Error:', error);
+    process.exit(1);
+});
