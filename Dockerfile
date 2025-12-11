@@ -1,4 +1,4 @@
-# Base image: Latest standard Node.js
+# Naye stable Node.js version ka istemal karein
 FROM node:20-alpine
 
 # Working directory set karna
@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 # Dependencies file copy karna
 COPY package.json ./
 
-# Dependencies install karna (Is baar cache se nahi uthega)
+# Dependencies install karna
 RUN npm install
 
 # Baaki ke files copy karna
