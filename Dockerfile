@@ -1,17 +1,10 @@
-# Base image Python ka use karein
-FROM python:3.11-alpine
+FROM node:18-alpine
 
-# Working directory set karna
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Dependencies file copy karna
-COPY requirements.txt ./
+COPY package*.json ./
+RUN npm install
 
-# Dependencies install karna
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Baaki ke files copy karna
 COPY . .
 
-# Bot ko shuru karne ki command
-CMD ["python", "bot.py"]
+CMD ["npm", "start"]
